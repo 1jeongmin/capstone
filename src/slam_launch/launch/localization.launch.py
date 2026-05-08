@@ -74,6 +74,17 @@ def generate_launch_description():
         output='screen'
     )
 
+    laser_filter_node = Node(
+        package='laser_filters',
+        executable='scan_to_scan_filter_chain',
+        name='laser_filter',
+        parameters=[os.path.join(
+            pkg_slam_launch,
+            'config', 'lidar_filter.yaml'
+        )],
+        output='screen'
+    )
+
     localization_node = Node(
         package='slam_toolbox',
         executable='localization_slam_toolbox_node',
@@ -97,6 +108,7 @@ def generate_launch_description():
     ld.add_action(robot_state_publisher_node)
     ld.add_action(joint_state_publisher_node)
     ld.add_action(lidar_node)
+    ld.add_action(laser_filter_node)
     ld.add_action(ekf_launch)
     ld.add_action(localization_node)
     return ld

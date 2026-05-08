@@ -1,0 +1,6 @@
+laser_filter:
+  ros__parameters:
+    filter0.name: rear_blind_spot
+    filter0.type: laser_filters/LaserScanAngularBoundsFilter
+    filter0.params.lower_angle: -2.9671
+    filter0.params.upper_angle: 2.9671

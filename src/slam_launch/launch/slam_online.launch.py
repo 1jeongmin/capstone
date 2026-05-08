@@ -68,6 +68,17 @@ def generate_launch_description():
         output='screen'
     )
 
+    laser_filter_node = Node(
+        package='laser_filters',
+        executable='scan_to_scan_filter_chain',
+        name='laser_filter',
+        parameters=[os.path.join(
+            get_package_share_directory('slam_launch'),
+            'config', 'lidar_filter.yaml'
+        )],
+        output='screen'
+    )
+
     slam_node = Node(
         package='slam_toolbox',
         executable='async_slam_toolbox_node',
@@ -82,6 +93,7 @@ def generate_launch_description():
     ld.add_action(robot_state_publisher_node)
     ld.add_action(joint_state_publisher_node)
     ld.add_action(lidar_node)
+    ld.add_action(laser_filter_node)
     ld.add_action(slam_node)
 
     return ld
