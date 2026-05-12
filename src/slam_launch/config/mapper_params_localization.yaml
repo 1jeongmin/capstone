@@ -20,7 +20,7 @@ slam_toolbox:
     map_start_pose: [0.0, 0.0, 0.0]
 
     use_map_saver: false
-    use_sim_time: true
+    use_sim_time: false
     debug_logging: false
     throttle_scans: 1
     transform_publish_period: 0.02 #if 0 never publishes odometry
