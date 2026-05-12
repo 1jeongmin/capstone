@@ -127,6 +127,19 @@ scout_base → /odom                           → EKF → odom→base_link TF
 - RViz QoS 불일치(Volatile vs Transient Local)로 맵 미표시 문제 → rviz config 파일로 해결
 - AMCL 초기 위치 미설정으로 map 프레임 미생성 → `set_initial_pose: true`로 해결
 
+**트러블슈팅 — RViz에서 맵이 안 보일 때**
+
+nav2 map_server는 `/map`을 `Transient Local` QoS로 **한 번만** 발행한다.
+RViz가 잘못된 QoS(`Volatile`)로 먼저 구독하면 연결이 맺어지지 않아 맵을 수신하지 못한다.
+rviz config 파일로 기동 시 해결되지만, 그래도 맵이 안 보이면 아래 명령으로 map_server를 강제 재발행한다.
+
+```bash
+ros2 lifecycle set /map_server deactivate && ros2 lifecycle set /map_server activate
+```
+
+> **원인 요약**: publisher `Transient Local` + subscriber `Volatile` → DDS 연결 미수립 → 재구독해도 캐시 재전송 없음
+> map_server를 재활성화하면 새로 발행되어 RViz가 수신 가능해짐
+
 ---
 
 ### 2026-05-12 — lidar_filter.yaml 파라미터 포맷 수정
