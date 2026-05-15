@@ -9,6 +9,7 @@
 | 패키지 | 설명 |
 |---|---|
 | `slam_launch` | SLAM 매핑 / 로컬라이제이션 / Nav2 launch 파일 및 설정 |
+| `scout_mini_tools` | 웨이포인트 레코더 및 Pure Pursuit 경로 추종 노드 |
 | `scout_ros2` | Scout Mini 로봇 베이스 드라이버 |
 | `sllidar_ros2` | SLAMTEC RPLiDAR 드라이버 |
 | `ros_wit_imu_node` | WIT IMU 드라이버 |
@@ -18,6 +19,80 @@
 ---
 
 ## 변경 이력
+
+### 2026-05-15 — scout_mini_tools 패키지 추가 및 slam_launch 업데이트
+
+**배경**
+웨이포인트 기반 자율주행을 위해 경로 기록 및 추종 기능이 필요해짐.
+기존 localization 런치의 맵 경로가 하드코딩 되어 있어 유연성 문제가 있었고,
+AMCL 기동 시 RViz 초기화 경쟁 상태(race condition)도 발생하여 함께 수정.
+
+**신규 패키지 — `scout_mini_tools`**
+
+- `sm_waypoint_recorder.py`
+  - TF(`map → base_link`)를 10 Hz로 구독하여 일정 거리(기본 0.5 m) 이상 이동 시 웨이포인트 기록
+  - Ctrl-C 종료 시 YAML과 CSV 두 형식으로 자동 저장
+  - YAML: `sm_path_follower`에서 직접 사용 / CSV: MATLAB smoothPathSpline 후처리용
+
+- `sm_path_follower_test.py`
+  - Pure Pursuit 알고리즘 기반 경로 추종 노드
+  - 곡률 기반 가변 속도 제어(직선 구간 최대 0.5 m/s, 급커브 시 자동 감속)
+  - 파라미터: `waypoint_file`, `lookahead_dist`, `linear_speed`, `k_ang`, `goal_tolerance` 등
+
+- `waypoint/` — 수집된 웨이포인트 파일
+  - `waypoints_floor12_1127.yaml/.csv`
+  - `waypoints_5152326.yaml/.csv`
+  - `waypoints_5152332.yaml/.csv`
+  - `waypoints_5152332_smoothSpline_developed.yaml` (MATLAB smoothPathSpline 처리 결과)
+  - `waypoints_5152204_smoothSpline_developed.yaml`
+
+**실행 방법 (웨이포인트 수집)**
+
+```bash
+# 로컬라이제이션이 실행 중인 상태에서
+ros2 run scout_mini_tools sm_waypoint_recorder
+# Ctrl-C 로 종료하면 waypoint/ 디렉토리에 YAML + CSV 자동 저장
+```
+
+**실행 방법 (경로 추종)**
+
+```bash
+ros2 run scout_mini_tools sm_path_follower_test \
+  --ros-args -p waypoint_file:=/home/user/ros2_ws3/src/scout_mini_tools/waypoint/waypoints_5152332_smoothSpline_developed.yaml
+```
+
+---
+
+**slam_launch 수정 사항**
+
+- `src/slam_launch/launch/localization2.launch.py` ← **신규 추가**
+  - slam_toolbox 로컬라이제이션 전용 간소화 런치 (lidar + laser_filter + slam_toolbox만 포함)
+  - 맵 경로 하드코딩: `~/maps/map_5142040`
+
+- `src/slam_launch/launch/localization.launch.py`
+  - `map_file` 런치 인자 추가 — 기존 패키지 내부 경로 하드코딩 제거
+  - 기본값: `/home/user/maps/map`
+  - 사용 예: `ros2 launch slam_launch localization.launch.py map_file:=/home/user/maps/map_5142040`
+
+- `src/slam_launch/launch/amcl_localization.launch.py`
+  - RViz 노드 시작에 `TimerAction(period=5.0)` 추가
+  - AMCL 및 map_server가 완전히 활성화된 후 RViz가 기동되어 맵 자동 수신 안정화
+
+- `src/slam_launch/config/nav2_params.yaml`
+  - `bond_timeout`: 4.0 → **10.0** (lifecycle 활성화 중 타임아웃 방지)
+  - `yaml_filename`: `/home/user/map/scout_map.yaml` → `/home/user/maps/scout_map5142040.yaml`
+
+- `src/slam_launch/launch/slam_online.launch.py`
+  - 라이다 시리얼 포트: `/dev/ttyUSB1` → `/dev/rpliadar` (udev 심볼릭 링크 기준)
+
+**디바이스 포트 (udev 심볼릭 링크 적용 후)**
+
+| 심볼릭 링크 | 장치 |
+|---|---|
+| `/dev/rpliadar` | SLAMTEC RPLidar |
+| `/dev/ttyUSB0` | WIT IMU (WT901) |
+
+---
 
 ### 2026-05-08 — LiDAR 후면 20° 블라인드 스팟 필터 적용
 
