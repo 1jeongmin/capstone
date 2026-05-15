@@ -14,6 +14,7 @@ def generate_launch_description():
     pkg_slam_launch = get_package_share_directory('slam_launch')
 
     slam_params_file = LaunchConfiguration('slam_params_file')
+    map_file = LaunchConfiguration('map_file')
 
     declare_slam_params_file_cmd = DeclareLaunchArgument(
         'slam_params_file',
@@ -25,8 +26,11 @@ def generate_launch_description():
         description='Full path to the slam_toolbox localization params file'
     )
 
-    # 설치된 패키지 경로 기준으로 맵 파일 지정 (CMakeLists.txt에서 maps/ 설치 필요)
-    serialized_map = os.path.join(pkg_slam_launch, 'maps', 'map')
+    declare_map_file_cmd = DeclareLaunchArgument(
+        'map_file',
+        default_value='/home/user/maps/map',
+        description='Full path to serialized map file without extension (e.g. /home/user/maps/map_날짜_시간)'
+    )
 
     # robot_description을 scout_description xacro로 생성
     robot_description_content = ParameterValue(
@@ -91,7 +95,7 @@ def generate_launch_description():
         name='slam_toolbox',
         parameters=[
             slam_params_file,
-            {'map_file_name': serialized_map}
+            {'map_file_name': map_file}
         ],
         output='screen'
     )
@@ -105,6 +109,7 @@ def generate_launch_description():
 
     ld = LaunchDescription()
     ld.add_action(declare_slam_params_file_cmd)
+    ld.add_action(declare_map_file_cmd)
     ld.add_action(robot_state_publisher_node)
     ld.add_action(joint_state_publisher_node)
     ld.add_action(lidar_node)

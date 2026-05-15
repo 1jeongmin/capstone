@@ -1,7 +1,7 @@
 import os
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, TimerAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, Command, PathJoinSubstitution
 from launch_ros.actions import Node
@@ -111,5 +111,5 @@ def generate_launch_description():
     ld.add_action(laser_filter_node)
     ld.add_action(ekf_launch)
     ld.add_action(nav2_localization)
-    ld.add_action(rviz_node)
+    ld.add_action(TimerAction(period=5.0, actions=[rviz_node]))
     return ld

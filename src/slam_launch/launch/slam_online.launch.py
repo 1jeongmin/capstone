@@ -58,7 +58,7 @@ def generate_launch_description():
         name='sllidar_node',
         parameters=[{
             'channel_type': 'serial',
-            'serial_port': '/dev/ttyUSB1',
+            'serial_port': '/dev/rpliadar',
             'serial_baudrate': 115200,
             'frame_id': 'laser',
             'inverted': False,
