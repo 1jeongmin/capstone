@@ -1,0 +1,45 @@
+# nav2_params.yaml (AMCL 전용으로 사용해도 됨)
+
+amcl:
+  ros__parameters:
+    # ---- 공통 ----
+    #use_sim_time: false        # launch에서 다시 덮어쓸 거라 기본값만 둠
+    use_map_topic: true        # map_server 가 /map 퍼블리시 → 그걸 구독해서 사용
+    tf_broadcast: true         # amcl이 map->odom TF를 브로드캐스트
+    transform_tolerance: 1.0
+
+    # ---- TF Frame 설정 (Scout Mini) ----
+    base_frame_id: "base_link"
+    odom_frame_id: "odom"
+    global_frame_id: "map"
+
+    # ---- 센서 / 토픽 설정 ----
+    scan_topic: "/scan"        # sllidar_ros2에서 퍼블리시는 토픽 이름
+
+    # ---- 파티클 필터 설정 ----
+    min_particles: 500
+    max_particles: 3000
+
+    set_initial_pose: true
+    initial_pose:
+      x: 0.0
+      y: 0.0
+      z: 0.0
+      yaw: 0.0
+
+    # ---- 모션 모델 (Scout Mini = differential drive) ----
+    #odom_model_type: "diff"    # diff / omni / ackermann 등, 여기서는 diff
+
+    # 오돔 노이즈 계수 (기본값에서 약간 보수적으로)
+    #alpha1: 0.2    # 회전에 대한 회전 노이즈
+    #alpha2: 0.2    # 직진에 대한 회전 노이즈
+    #alpha3: 0.2    # 직진에 대한 직진 노이즈
+    #alpha4: 0.2    # 회전에 대한 직진 노이즈
+
+    # ---- 레이저 센서 모델 ----
+    #laser_model_type: "likelihood_field"
+    #laser_max_range: 12.0      # RPLidar A2 실측 최대보다 살짝 넉넉히
+    #laser_min_range: 0.15
+    #laser_z_hit: 0.95
+    #laser_z_rand: 0.05
+    #laser_sigma_hit: 0.2
